@@ -1,0 +1,109 @@
+<section id="intro">
+<p>Above is the movement of a plain, hand-wound mechanical watch. There is no battery and no chip. There is a spring, a row of brass wheels, a little steel lever with two red stones, and a wheel on a hair-thin spring that swings one way and then the other, six swings every second. That is the whole machine.</p>
+<p>It looks complicated, but each part has one job. We will build the watch one part at a time, and after each step you can try the part yourself. By the end you will know why every piece is there, and what goes wrong without it.</p>
+</section>
+
+<section id="spring">
+<h2>Storing energy</h2>
+<p>A watch runs on energy you put in with your fingers. Turning the crown winds a long ribbon of hardened spring metal, steel or a special alloy, called the <em>mainspring</em>, tighter and tighter around a central post called the arbor. The spring lives inside a toothed drum, the <em>barrel</em>. Its inner end is hooked to the arbor and its outer end to the barrel wall, so a wound spring tries to turn the barrel, and the teeth around the barrel pass that effort on to the rest of the watch.</p>
+<p>A spring is a poor battery in one respect. It pushes hard when fully wound and weakly when nearly let down, and the watch would like a steady push. Some older watches had a small stopwork that kept the first and last turns out of use, so only the flatter middle of the range did the work. Most modern watches let the spring run all the way down and rely instead on the balance, whose rhythm barely changes as the push fades, as we will see below. In our watch the spring gives about five and a half useful turns of the barrel.</p>
+<figure class="fig" data-figure="spring">
+<div class="stage flat"><canvas aria-label="A barrel cut open to show the coiled mainspring, beside a graph of spring torque against turns."></canvas></div>
+<div class="controls"><label class="ctl">Wind <input type="range" min="0" max="1" step="0.005" value="0.7" data-wind> <output data-wind-out></output></label></div>
+<figcaption>Wind the spring and watch the coils pack against the arbor. The graph shows how hard the spring pushes at each state of wind. The shaded band is the range where the push is most even.</figcaption>
+</figure>
+</section>
+
+<section id="gears">
+<h2>Gears trade force for turns</h2>
+<p>The barrel turns slowly. In our watch it goes round once every eight hours. The hands need something faster, and the part that regulates the watch needs something much faster still. Gears make the conversion. When a big wheel drives a small one, the small one turns faster by the ratio of their teeth. A wheel with 80 teeth driving a pinion with 10 <em>leaves</em>, as watchmakers call a pinion's teeth, makes the pinion turn 8 times for every turn of the wheel.</p>
+<p>Speed is not free. The faster gear turns with proportionally less force, so every step up in speed is a step down in push. That is why the first wheels are big and sturdy and the last ones are tiny.</p>
+<figure class="fig" data-figure="gears">
+<div class="stage flat"><canvas aria-label="A wheel driving a pinion. The pinion turns faster in proportion to the tooth counts."></canvas></div>
+<div class="controls">
+<label class="ctl">Wheel teeth <input type="range" min="30" max="96" step="1" value="80" data-wheel> <output data-wheel-out></output></label>
+<label class="ctl">Pinion leaves <input type="range" min="6" max="16" step="1" value="10" data-pinion> <output data-pinion-out></output></label>
+</div>
+<figcaption>Change the tooth counts and see the ratio change. Watch the marked tooth on each gear to count turns.</figcaption>
+</figure>
+<p>A watch chains four of these steps together. Each wheel is fixed on the same axle, the <em>arbor</em>, as the pinion that the previous wheel drives.</p>
+<ul class="ratios">
+<li>Barrel, 96 teeth, drives the centre pinion, 12 leaves. That is 8 to 1, so the centre wheel turns once an hour and carries the minute hand.</li>
+<li>Centre wheel, 80 teeth, drives the third pinion, 10 leaves, for 8 to 1.</li>
+<li>Third wheel, 75 teeth, drives the fourth pinion, 10 leaves, for 7.5 to 1. Since 8 × 7.5 = 60, the fourth wheel turns once a minute and carries the small seconds hand.</li>
+<li>Fourth wheel, 84 teeth, drives the escape pinion, 7 leaves, for 12 to 1. The escape wheel turns once every five seconds.</li>
+</ul>
+<p>From barrel to escape wheel the speed goes up 8 × 8 × 7.5 × 12 = 5,760 times.</p>
+</section>
+
+<section id="runaway">
+<h2>Power needs a brake</h2>
+<p>Connect the spring to the train and let go, and something disappointing happens. The wheels do turn, but they turn as fast as friction allows. The escape wheel blurs, and a spring that should have lasted nearly two days is empty in minutes. The hands would race around the dial and tell no time at all.</p>
+<p>The problem is not power. It is pacing. We need something that lets the train move a small, exact step at a time, at a steady rhythm, and holds it still in between.</p>
+<figure class="fig" data-figure="runaway">
+<div class="stage flat"><canvas aria-label="The going train with nothing holding it back. Released, it spins up and the spring runs down."></canvas></div>
+<div class="controls"><button type="button" data-release>Release the train</button> <button type="button" data-reset>Wind again</button></div>
+<figcaption>With nothing to stop it, the train spins up in a fraction of a second. The readout shows how fast the spring would empty at this speed. The wheels sit at different heights, so seen from above they overlap and are drawn see-through.</figcaption>
+</figure>
+</section>
+
+<section id="escapement">
+<h2>The escape wheel and the pallet fork</h2>
+<p>The brake is called the <em>escapement</em>, because it lets the train escape one tooth at a time. The last wheel of the train, the <em>escape wheel</em>, has 15 oddly shaped teeth. Above it sits the <em>pallet fork</em>, a lever that rocks between two banking pins. At its far end are two polished stones of synthetic ruby, the pallets. One of them is always in the way of an escape tooth.</p>
+<p>Each beat has four parts, and you can step through them below.</p>
+<ul>
+<li><b>Lock.</b> A tooth rests against the locking face of one pallet. The train is stopped. The faces are angled so the tooth's push draws the fork more firmly against its banking pin. This is called <em>draw</em>, and it keeps the fork from wandering.</li>
+<li><b>Unlock.</b> Something nudges the fork. The pallet slides off the tooth, and for a moment the escape wheel is pushed very slightly backwards.</li>
+<li><b>Impulse.</b> Free now, the tooth slides across the sloped face of the pallet and pushes the fork the rest of the way over. This is how the spring's energy leaves the train.</li>
+<li><b>Drop.</b> The tooth falls off the pallet. The wheel jumps a degree or two until the next tooth lands on the other pallet's locking face. The tick you hear is really a quick cluster of tiny clicks, from the unlocking, the impulse and this final landing, too close together for the ear to separate.</li>
+</ul>
+<p>Every beat advances the escape wheel by exactly half a tooth, 12 degrees. That fixed step is what turns the spinning train into countable time.</p>
+<figure class="fig" data-figure="escapement">
+<div class="stage flat"><canvas aria-label="A close-up of the lever escapement stepping through lock, unlock, impulse and drop."></canvas></div>
+<div class="controls">
+<button type="button" data-play>Play</button>
+<label class="ctl">Through one beat <input type="range" min="0" max="1" step="0.001" value="0.1" data-scrub> <output data-phase-out></output></label>
+</div>
+<figcaption>Drag through one beat. The fork only moves while the balance's jewel is in its slot. The rest of the time the wheel is locked.</figcaption>
+</figure>
+</section>
+
+<section id="balance">
+<h2>The balance and hairspring</h2>
+<p>What nudges the fork, and at what rhythm? The answer is the part that actually keeps time, a small wheel called the <em>balance</em>, attached to a very fine spiral spring, the <em>hairspring</em>. Twist the balance and the hairspring pulls it back. It overshoots, gets pulled back the other way, and swings back and forth like a pendulum lying flat.</p>
+<p>The rhythm is set mainly by how heavy the rim is, how far that weight sits from the centre, and how stiff the spring is. A heavier rim or a softer spring swings more slowly. Crucially, it barely depends on how far the balance swings. A big swing and a small swing take almost the same time. This property is called <em>isochronism</em>, and it is why the watch keeps time even as the mainspring weakens and the swings shrink. Christiaan Huygens, who also made the pendulum clock practical, published the balance spring in 1675.</p>
+<figure class="fig" data-figure="balance">
+<div class="stage flat"><canvas aria-label="A balance wheel swinging on its hairspring, with a trace of its angle over time."></canvas></div>
+<div class="controls">
+<label class="ctl">Rim weight <input type="range" min="0.5" max="2" step="0.01" value="1" data-inertia> <output data-inertia-out></output></label>
+<label class="ctl">Spring stiffness <input type="range" min="0.5" max="2" step="0.01" value="1" data-stiff> <output data-stiff-out></output></label>
+<label class="ctl">Swing <input type="range" min="60" max="300" step="1" value="270" data-amp> <output data-amp-out></output></label>
+</div>
+<figcaption>Change the rim weight or the spring and the rhythm changes. Change the size of the swing and it does not. The faint trace is our watch's balance, for comparison.</figcaption>
+</figure>
+<p>Our balance makes three full round trips, there and back, every second. Each round trip passes the middle twice, and each pass is one beat, so the watch beats 6 times a second, or 21,600 times an hour. Watchmakers quote this as 21,600 vibrations per hour. Many modern watches beat faster, at 28,800.</p>
+</section>
+
+<section id="together">
+<h2>Putting the escapement together</h2>
+<p>Now connect the two. A tiny ruby pin on the balance, the <em>roller jewel</em>, swings into the slot at the end of the fork once every beat. On its way through, it knocks the fork over and unlocks the escape wheel. The escape wheel then pushes the fork, and the fork pushes the jewel, giving the balance a small kick that makes up for what friction took away. Then the jewel leaves the slot and the balance swings on alone.</p>
+<p>Most of the time the balance is not touching anything at all. It is connected to the train only for the brief moment the jewel is in the fork, about 52 degrees out of a swing of several hundred. That freedom is why this design, the Swiss lever escapement, keeps such good time. It grew from Thomas Mudge's detached lever of the 1750s and is still in almost every mechanical watch made today.</p>
+<p>Go back up to the first figure, slow it down to 1/100, and watch one beat. The status line names each phase as it happens.</p>
+</section>
+
+<section id="hands">
+<h2>Hands and winding</h2>
+<p>The centre wheel turns once an hour, so the minute hand rides on it. It does not sit there rigidly. It rides on a small tube, the <em>cannon pinion</em>, held on by friction, so you can turn the hands to set the time without dragging the whole train backwards. The cannon pinion drives a small gear train of its own under the dial, the <em>motion works</em>, that slows the turning by 12 to 1 for the hour hand.</p>
+<figure class="fig" data-figure="motion">
+<div class="stage flat"><canvas aria-label="The motion works under the dial: cannon pinion, minute wheel and hour wheel, driving the minute and hour hands."></canvas></div>
+<div class="controls"><label class="ctl">Speed <input type="range" min="0" max="1" step="0.01" value="0.5" data-speed> <output data-speed-out></output></label></div>
+<figcaption>Cannon pinion, 12 leaves, drives the minute wheel, 36 teeth, for 3 to 1. The minute wheel's pinion, 10 leaves, drives the hour wheel, 40 teeth, for 4 to 1. Three times four is twelve. The hour wheel turns around the cannon pinion one layer higher, meshing only with the small steel pinion, so it is drawn as a dashed outline where it passes over the minute wheel.</figcaption>
+</figure>
+<p>Winding happens through the crown. Its stem carries a winding pinion that turns the crown wheel, which turns a large ratchet wheel fixed to the barrel arbor. A spring-loaded click lets the ratchet turn only one way, so the spring cannot unwind backwards through your fingers. Pull the crown out and a sliding pinion on the stem shifts across to engage the motion works instead, so the same stem sets the hands.</p>
+</section>
+
+<section id="whole">
+<h2>The whole watch</h2>
+<p>That is every job accounted for. The mainspring stores energy. The train carries it and multiplies the speed. The escapement lets it out in equal steps. The balance and hairspring decide how often those steps happen. The motion works turn the steps into hours and minutes.</p>
+<p>Now try breaking it. In the first figure, open <b>Parts</b> and switch off the pallet fork, and the train runs away just as it did without a brake. Switch off the balance, and the fork falls against a banking pin and the watch stops dead. Switch off the barrel, and the balance keeps swinging for a while on its own, slowly running down, while the hands stand still.</p>
+</section>

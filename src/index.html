@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How a Watch Works</title>
+<meta name="description" content="An interactive explainer of the mechanical watch, from mainspring to hairspring.">
+<style>
+/*FONTS*/
+/*STYLE*/
+</style>
+</head>
+<body>
+<main>
+<header class="title">
+<h1>How a Watch Works</h1>
+<p class="dek">A mechanical watch keeps time with nothing but a coiled spring, a handful of gears and a tiny wheel that swings one way and then the other, six swings every second.</p>
+</header>
+
+<figure class="fig wide" data-figure="movement">
+<div class="stage"><canvas aria-label="A 3D model of a mechanical watch movement. Drag to turn it."></canvas>
+<canvas class="dial" width="120" height="120" data-dial aria-hidden="true"></canvas>
+<p class="status" data-status aria-live="polite"></p></div>
+<div class="controls panel">
+<div class="btns"><button type="button" data-play>Pause</button> <button type="button" data-sound aria-pressed="false">Sound off</button> <button type="button" data-parts aria-expanded="false" aria-controls="parts-list">Parts</button></div>
+<label class="ctl">Speed <input type="range" min="0" max="1" step="0.01" value="0" data-speed> <output data-speed-out>real time</output></label>
+<label class="ctl">Scrub <input type="range" min="0" max="2" step="0.0005" value="0" data-scrub aria-label="Scrub through two seconds of time"> <output data-time-out>0.000 s</output></label>
+<label class="ctl">Explode <input type="range" min="0" max="1" step="0.01" value="0" data-explode> <output data-explode-out>closed</output></label>
+</div>
+<div class="toggles" id="parts-list" data-toggles hidden></div>
+<figcaption>The movement of a hand-wound watch. Drag to turn it, pull it apart with the explode slider, or switch parts off.</figcaption>
+</figure>
+<!--ESSAY-->
+</main>
+<script>
+/*APP*/
+</script>
+</body>
+</html>
