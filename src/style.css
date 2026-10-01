@@ -32,7 +32,6 @@ h1 { font-weight: 400; font-size: clamp(2.4rem, 7vw, 3.8rem); line-height: 1.05;
   background: radial-gradient(ellipse at 50% 40%, #fbf7ef 0%, #efe6d4 70%, #e6dac4 100%);
   overflow: hidden;
 }
-.stage .dial { position: absolute; left: 1.2rem; bottom: 1.2rem; width: 88px; height: 88px; pointer-events: none; }
 .stage .status { position: absolute; right: 0.9rem; top: 0.6rem; margin: 0; font-size: 0.95rem; color: var(--muted); text-align: right; pointer-events: none; font-variant-numeric: tabular-nums; }
 .stage .status b { color: var(--ink); font-weight: 500; }
 .stage canvas:first-child { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
@@ -72,18 +71,17 @@ section > ul li { margin-bottom: 0.45rem; }
   * { scroll-behavior: auto !important; transition: none !important; }
 }
 .controls button[aria-pressed=true] { background: #f3e2c2; border-color: var(--accent); }
+.controls button.primary { border-color: var(--accent); font-weight: 600; }
 @media (max-width: 600px) {
   .stage.flat { aspect-ratio: 4 / 5; }
   body { font-size: 1.12rem; }
   .stage { aspect-ratio: 1 / 1; }
   .ctl input[type=range] { width: 7rem; }
-  .stage .dial { width: 64px; height: 64px; left: 0.5rem; bottom: 0.5rem; }
   .stage .status { font-size: 0.85rem; right: 0.6rem; top: 0.4rem; }
 }
 @media (max-width: 600px) {
   .panel { grid-template-columns: minmax(0, 1fr); gap: 0.45rem; }
   .panel .ctl { grid-template-columns: 3.9rem minmax(0, 1fr) 5.2rem; }
-  .stage .dial { top: 0.5rem; bottom: auto; left: 0.5rem; width: 58px; height: 58px; }
 }
 /* Short landscape screens: put the controls beside the movement so both fit at once. */
 @media (max-height: 500px) and (orientation: landscape) {
@@ -93,7 +91,6 @@ section > ul li { margin-bottom: 0.45rem; }
   .fig[data-figure=movement] .toggles { grid-column: 2; grid-template-columns: 1fr 1fr; gap: 0 0.6rem; font-size: 0.9rem; margin-top: 0.3rem; }
   .fig[data-figure=movement] figcaption { grid-column: 2; font-size: 0.9rem; }
   .panel .ctl { grid-template-columns: 3.9rem minmax(0, 1fr) 4.9rem; font-size: 0.95rem; }
-  .stage .dial { width: 64px; height: 64px; left: 0.6rem; bottom: 0.6rem; }
 }
 /* Desktop: slightly larger controls, and a lone slider stretches to the canvas width. */
 @media (min-width: 601px) {

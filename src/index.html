@@ -18,17 +18,16 @@
 </header>
 
 <figure class="fig wide" data-figure="movement">
-<div class="stage"><canvas aria-label="A 3D model of a mechanical watch movement. Drag to turn it."></canvas>
-<canvas class="dial" width="120" height="120" data-dial aria-hidden="true"></canvas>
+<div class="stage"><canvas aria-label="A 3D model of a mechanical wristwatch that opens to show its movement. Drag to turn it."></canvas>
 <p class="status" data-status aria-live="polite"></p></div>
 <div class="controls panel">
-<div class="btns"><button type="button" data-play>Pause</button> <button type="button" data-sound aria-pressed="false">Sound off</button> <button type="button" data-parts aria-expanded="false" aria-controls="parts-list">Parts</button></div>
+<div class="btns"><button type="button" class="primary" data-open aria-pressed="false">Open the watch</button> <button type="button" data-play>Pause</button> <button type="button" data-sound aria-pressed="false">Sound off</button> <button type="button" data-parts aria-expanded="false" aria-controls="parts-list">Parts</button></div>
 <label class="ctl">Speed <input type="range" min="0" max="1" step="0.01" value="0" data-speed> <output data-speed-out>real time</output></label>
 <label class="ctl">Scrub <input type="range" min="0" max="2" step="0.0005" value="0" data-scrub aria-label="Scrub through two seconds of time"> <output data-time-out>0.000 s</output></label>
-<label class="ctl">Explode <input type="range" min="0" max="1" step="0.01" value="0" data-explode> <output data-explode-out>closed</output></label>
+<label class="ctl">Explode <input type="range" min="0" max="1" step="0.01" value="0" data-explode> <output data-explode-out>together</output></label>
 </div>
 <div class="toggles" id="parts-list" data-toggles hidden></div>
-<figcaption>The movement of a hand-wound watch. Drag to turn it, pull it apart with the explode slider, or switch parts off.</figcaption>
+<figcaption>A hand-wound watch, keeping time. Open it to see the movement inside, then drag to turn it, pull it apart with the explode slider, or switch parts off.</figcaption>
 </figure>
 <!--ESSAY-->
 </main>

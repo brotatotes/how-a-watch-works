@@ -69,8 +69,9 @@ with sync_playwright() as p:
     # Hands: seconds hand = fourth wheel at 6 deg per sim second.
     h = J('(() => { const m = __watch.machine; const a = m.state.hands.seconds; m.seek(m.t + 10); const b = m.state.hands.seconds; return {a, b, perSec: (b - a) / 10}; })()')
     ok('seconds_hand_6deg_per_s', abs(h['perSec'] - 6) < 0.2, h)
-    dialPix = J("(() => { const c = document.querySelector('[data-dial]'); const d = c.getContext('2d').getImageData(0,0,c.width,c.height).data; let n=0; for (let i=3;i<d.length;i+=4) if (d[i]>0) n++; return n; })()")
-    ok('dial_drawn', dialPix > 3000, dialPix)
+    # The 2D corner dial was replaced by the 3D hands on the closed watch (watch-cover update).
+    hands3d = J("(() => { const g = __watch.wc.groups; return { visible: __watch.wc.front.visible !== undefined, hasHands: !!(g.hourG && g.minG && g.secG), noDial: !document.querySelector('[data-dial]') }; })()")
+    ok('hands_3d_present', hands3d['hasHands'] and hands3d['noDial'], hands3d)
     if shots: shot(path=f'{shots}-running.png')
     b.close()
 R['pass'] = all(c['pass'] for c in R['checks'].values()) and not R['errors'] and not R['requests']

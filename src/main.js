@@ -1,8 +1,11 @@
-// Entry point. Stage 2: the whole-movement figure with orbit, explode and part toggles.
+// Entry point: the main watch figure, closed with real hands, opening onto the movement with orbit, explode and part toggles.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { buildMovement } from './three/movement.js';
+import { buildCase, CASE } from './three/case.js';
+import { dialAngles } from './sim/handmap.js';
+import { openPose, stepOpen } from './sim/opening.js';
 import { Machine } from './sim/machine.js';
 import { initFigures } from './figures2d.js';
 import { createQuality, adaptQuality } from './quality.js';
@@ -36,14 +39,31 @@ function initMovementFigure(fig) {
   scene.add(key, rimL, hemi, fill);
 
   const mv = buildMovement({ quality: 1 });
-  scene.add(mv.root);
+  // The closed watch: case, dial and real hands driven by the same simulation as the movement.
+  // Movement and case share one group. In the model the crown points left of the screen, so the
+  // closed watch is turned half a turn to read like a wristwatch, 12 at the top and the crown at 3.
+  const wc = buildCase({ quality: 1 });
+  const watch = new THREE.Group();
+  watch.add(mv.root, wc.root);
+  watch.rotation.z = Math.PI;
+  scene.add(watch);
   const camera = new THREE.PerspectiveCamera(30, 1, 0.5, 400);
   // The parts sit in the upper-right two thirds of the plate, so frame their centroid.
   const narrow = fig.clientWidth < 600;
   // Centre on the plate plus the crown that sticks out to the left (polish review p1: the
   // old target left a wide empty band on the right).
-  const target = new THREE.Vector3(narrow ? -1 : -1.5, -0.8, 1.5);
-  const home = new THREE.Vector3(0.5, -23, 66);
+  // Two framings: the closed watch face-on with its lugs in view, and the movement view used once
+  // the watch is opened. `fit` is the half width in millimetres kept on screen on narrow canvases.
+  const VIEWS = {
+    closed: { target: new THREE.Vector3(0, -0.5, 3), home: new THREE.Vector3(0.5, -30, 96), fit: 27 },
+    // The watch stays turned crown-right when open, so the movement view's target is mirrored to match.
+    // Pulled back and lowered after frame review found the bottom lugs clipped in the open view.
+    open: { target: new THREE.Vector3(narrow ? 1 : 1.5, -0.7, 1.5), home: new THREE.Vector3(-1.8, -36.3, 96.9), fit: 29 },
+  };
+  let view = VIEWS.closed;
+  let fit = view.fit;
+  const target = view.target.clone();
+  const home = view.home.clone();
   camera.position.copy(home);
   const controls = new OrbitControls(camera, canvas);
   controls.target.copy(target);
@@ -53,16 +73,18 @@ function initMovementFigure(fig) {
   controls.enablePan = false;
   canvas.addEventListener('dblclick', () => { camera.position.copy(home); controls.target.copy(target); });
 
-  const state = { t: 0, speed: 1, playing: !reduced, explode: 0 };
+  const state = { t: 0, speed: 1, playing: !reduced, explode: 0, open: 0, openGoal: 0 };
   const machine = new Machine();
   machine.seek(0.2);
   const explodeInput = fig.querySelector('[data-explode]');
   const explodeOut = fig.querySelector('[data-explode-out]');
   explodeInput.addEventListener('input', () => {
+    // The layers can only come apart once the dial is off, so exploding a closed watch opens it.
+    if (state.openGoal === 0 && +explodeInput.value > 0) setOpen(true);
     // Raise the view with the stack so the lifted bridges stay in frame, and pull back a little.
     const dz = (+explodeInput.value - state.explode) * 18;
     state.explode = +explodeInput.value;
-    explodeOut.textContent = state.explode < 0.01 ? 'closed' : `${Math.round(state.explode * 100)}% apart`;
+    explodeOut.textContent = state.explode < 0.01 ? 'together' : `${Math.round(state.explode * 100)}% apart`;
     mv.setExplode(state.explode);
     const off = camera.position.clone().sub(controls.target);
     controls.target.z += dz;
@@ -93,7 +115,6 @@ function initMovementFigure(fig) {
     const base = Math.floor(machine.t / WINDOW) * WINDOW;
     machine.seek(base + +scrub.value);
   });
-  const dial = makeDial(fig.querySelector('[data-dial]'));
   const statusEl = fig.querySelector('[data-status]');
   let lastStatus = '';
 
@@ -101,6 +122,8 @@ function initMovementFigure(fig) {
   const partsBtn = fig.querySelector('[data-parts]');
   partsBtn.addEventListener('click', () => {
     const open = toggles.hidden;
+    // The part switches are for the movement, so showing them opens the watch.
+    if (open && state.openGoal === 0) setOpen(true);
     toggles.hidden = !open;
     partsBtn.setAttribute('aria-expanded', String(open));
     partsBtn.setAttribute('aria-pressed', String(open));
@@ -118,6 +141,105 @@ function initMovementFigure(fig) {
     });
     lab.append(cb, ' ', mv.parts[n].label);
     toggles.append(lab);
+  }
+
+  // Open and close. The crystal, dial and hands lift, tilt and slide off the top as one unit, while
+  // the camera eases from the face-on view to the movement view. Reduced motion jumps.
+  const openBtn = fig.querySelector('[data-open]');
+  const anim = { from: null, to: null };
+  function setOpen(on) {
+    state.openGoal = on ? 1 : 0;
+    if (!on) {
+      // Close the parts list and bring the layers back together before the dial returns.
+      toggles.hidden = true;
+      partsBtn.setAttribute('aria-expanded', 'false'); partsBtn.setAttribute('aria-pressed', 'false');
+      if (state.explode > 0) { explodeInput.value = 0; explodeInput.dispatchEvent(new Event('input')); }
+    }
+    const dest = on ? VIEWS.open : VIEWS.closed;
+    anim.from = { pos: camera.position.clone(), target: controls.target.clone(), fit, p: state.open };
+    anim.to = dest;
+    view = dest; target.copy(dest.target); home.copy(dest.home);
+    openBtn.textContent = on ? 'Close the watch' : 'Open the watch';
+    openBtn.setAttribute('aria-pressed', String(on));
+    // With the figure scrolled away the frame loop is paused, so settle at once rather than
+    // leaving a half-open watch for the reader to find later.
+    measureSlide();
+    if (!onScreen) applyOpen(10);
+  }
+  openBtn.addEventListener('click', () => setOpen(state.openGoal === 0));
+  // The front (crystal, dial and hands) slides off as one rigid unit along the open view's screen-up
+  // direction. Its travel is measured once per opening so it ends just past the top of the frame.
+  const slideDir = new THREE.Vector3(), tiltAxis = new THREE.Vector3(), tiltQ = new THREE.Quaternion();
+  const pivot = new THREE.Vector3(0, 0, CASE.dialZ), tmpV = new THREE.Vector3(), rootQ = new THREE.Quaternion();
+  const slide = { dist: 80 };
+  // Bounding-box corners of the front in wc.root's frame, measured at rest.
+  const frontCorners = (() => {
+    const b = new THREE.Box3();
+    for (const g of [wc.front, wc.lid]) { g.updateMatrixWorld(true); b.expandByObject(g); }
+    const inv = new THREE.Matrix4().copy(wc.root.matrixWorld).invert();
+    const out = [];
+    for (let i = 0; i < 8; i++) out.push(new THREE.Vector3(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).applyMatrix4(inv));
+    return out;
+  })();
+  function measureSlide() {
+    // A camera standing where the open view will put it.
+    const cam = camera.clone();
+    const v = VIEWS.open, dz = state.explode * 18;
+    const t = v.target.clone(); t.z += dz;
+    cam.position.copy(v.home).sub(v.target).multiplyScalar(1 + dz / 90).add(t);
+    cam.lookAt(t);
+    const fitHalf = v.fit / cam.position.distanceTo(t) / cam.aspect;
+    cam.fov = 2 * Math.atan(Math.max(Math.tan(15 * Math.PI / 180), fitHalf)) * 180 / Math.PI;
+    cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
+    wc.root.updateMatrixWorld(true);
+    wc.root.getWorldQuaternion(rootQ);
+    slideDir.setFromMatrixColumn(cam.matrixWorld, 1).applyQuaternion(rootQ.clone().invert()).normalize();
+    // Tilt about the screen-x axis so the 6 o'clock edge rises toward the reader as the front lifts.
+    tiltAxis.set(0, 0, 1).cross(slideDir).normalize();
+    const pose = openPose(1);
+    for (let d = 10; d <= 200; d += 2) {
+      let minY = Infinity;
+      tiltQ.setFromAxisAngle(tiltAxis, pose.front.tilt * Math.PI / 180);
+      for (const c of frontCorners) {
+        tmpV.copy(c).sub(pivot).applyQuaternion(tiltQ).add(pivot).addScaledVector(slideDir, d);
+        tmpV.z += pose.front.lift;
+        tmpV.applyMatrix4(wc.root.matrixWorld).project(cam);
+        minY = Math.min(minY, tmpV.y);
+      }
+      if (minY > 1.08) { slide.dist = d; return; }
+    }
+    slide.dist = 200;
+  }
+  function applyOpen(dt) {
+    const before = state.open;
+    state.open = stepOpen(state.open, state.openGoal, dt, reduced);
+    const pose = openPose(state.open);
+    // The closed watch is turned half a turn to read 12 at the top. Opening turns it back so the
+    // end state is the original movement view. Offsets are kept in screen terms while it turns.
+    const th = Math.PI * (1 - pose.turn);
+    watch.rotation.z = th;
+    // The front lifts, tilts back a little and slides off the top of the frame, fully opaque and full size.
+    tiltQ.setFromAxisAngle(tiltAxis, pose.front.tilt * Math.PI / 180);
+    tmpV.copy(pivot).sub(pivot.clone().applyQuaternion(tiltQ)).addScaledVector(slideDir, slide.dist * pose.front.slide);
+    tmpV.z += pose.front.lift;
+    for (const g of [wc.lid, wc.front]) { g.quaternion.copy(tiltQ); g.position.copy(tmpV); g.visible = pose.front.visible; }
+    wc.hands.visible = pose.front.visible;
+    if (!wc.hands.userData.ordered) { wc.hands.traverse((o) => { o.renderOrder = 5; }); wc.hands.userData.ordered = true; }
+    // Nothing of the movement shows through a closed dial, so skip drawing it.
+    mv.root.visible = state.open > 0;
+    if (anim.to && (before !== state.open || reduced)) {
+      const f = anim.from, span = state.openGoal - f.p;
+      const u = span === 0 ? 1 : openPose((state.open - f.p) / span).camera;
+      // Keep any explode lift (see the explode slider) in the destination framing.
+      const dz = state.explode * 18;
+      const toT = anim.to.target.clone(); toT.z += dz;
+      const toP = anim.to.home.clone().sub(anim.to.target).multiplyScalar(1 + dz / 90).add(toT);
+      controls.target.lerpVectors(f.target, toT, u);
+      camera.position.lerpVectors(f.pos, toP, u);
+      fit = f.fit + (anim.to.fit - f.fit) * u;
+      fitFov();
+      if (state.open === state.openGoal) anim.to = null;
+    }
   }
 
   // Optional synthesized tick, off until the reader asks for it. Each beat plays a short
@@ -164,12 +286,14 @@ function initMovementFigure(fig) {
     if (canvas.width !== Math.round(w * renderer.getPixelRatio()) || canvas.height !== Math.round(h * renderer.getPixelRatio())) {
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
-      // Fit the whole plate plus the crown across narrow screens; 30 degrees is the desktop look.
-      const a = w / h;
-      const fitHalf = 21.5 / camera.position.distanceTo(controls.target) / a;
-      camera.fov = 2 * Math.atan(Math.max(Math.tan(15 * Math.PI / 180), fitHalf)) * 180 / Math.PI;
-      camera.updateProjectionMatrix();
+      fitFov();
     }
+  }
+  // Fit the whole watch (or plate plus crown) across narrow screens; 30 degrees is the desktop look.
+  function fitFov() {
+    const fitHalf = fit / camera.position.distanceTo(controls.target) / camera.aspect;
+    camera.fov = 2 * Math.atan(Math.max(Math.tan(15 * Math.PI / 180), fitHalf)) * 180 / Math.PI;
+    camera.updateProjectionMatrix();
   }
   let last = performance.now();
   let running = true;
@@ -188,11 +312,12 @@ function initMovementFigure(fig) {
     if (sound.on && e.mode === 'running' && state.playing && sound.lastBeat !== null && e.beat !== sound.lastBeat) click();
     sound.lastBeat = e.mode === 'running' ? e.beat : null;
     mv.update({ escapeDeg: e.escape, forkDeg: e.fork, balanceDeg: e.balance });
-    dial(e.hands);
+    wc.setHands(dialAngles(e.hands));
     if (document.activeElement !== scrub) scrub.value = machine.t - Math.floor(machine.t / WINDOW) * WINDOW;
     timeOut.textContent = `${machine.t.toFixed(3)} s`;
     const st = statusText(e);
     if (st !== lastStatus) { statusEl.innerHTML = st; lastStatus = st; }
+    applyOpen(dt);
     resize();
     controls.update();
     renderer.render(scene, camera);
@@ -202,8 +327,9 @@ function initMovementFigure(fig) {
   }
   requestAnimationFrame(frame);
   // Test hooks: stop the loop and render one still on demand.
+  applyOpen(0);
   const renderStill = () => { resize(); controls.update(); renderer.render(scene, camera); return canvas.toDataURL('image/png'); };
-  window.__watch = { state, machine, mv, renderer, scene, lights: { key, rimL, hemi }, camera, controls, frameMs, quality, sound,
+  window.__watch = { state, setOpen, applyOpen, machine, mv, wc, watch, VIEWS, renderer, scene, lights: { key, rimL, hemi }, camera, controls, frameMs, quality, sound,
     stop() { running = false; }, start() { if (!running) { running = true; last = performance.now(); requestAnimationFrame(frame); } }, renderStill };
 }
 
@@ -213,33 +339,6 @@ function statusText(e) {
   if (e.mode === 'unpowered') return '<b>No mainspring.</b> The train stands still and the balance slowly rings down.';
   if (e.mode === 'jammed') return '<b>No balance.</b> The fork falls to one side and the escape wheel stays locked.';
   return `Beat ${(e.beat % 6) + 1} of 6 &middot; <b>${PHASE_TEXT[e.phase] || e.phase}</b>`;
-}
-
-// A small dial with hour, minute and seconds hands driven by the train. The watch starts at 10:09.
-function makeDial(c) {
-  const g = c.getContext('2d');
-  const W = c.width, R = W / 2;
-  const hand = (deg, len, w, col) => {
-    const a = (deg - 90) * Math.PI / 180;
-    g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round';
-    g.beginPath(); g.moveTo(R - Math.cos(a) * len * 0.18, R - Math.sin(a) * len * 0.18);
-    g.lineTo(R + Math.cos(a) * len, R + Math.sin(a) * len); g.stroke();
-  };
-  return (h) => {
-    g.clearRect(0, 0, W, W);
-    g.fillStyle = '#fbf6ea'; g.strokeStyle = '#b9a88c'; g.lineWidth = 2;
-    g.beginPath(); g.arc(R, R, R - 2, 0, Math.PI * 2); g.fill(); g.stroke();
-    g.strokeStyle = '#6d6256';
-    for (let i = 0; i < 60; i++) {
-      const a = i * Math.PI / 30, r0 = i % 5 ? R - 7 : R - 12;
-      g.lineWidth = i % 5 ? 1 : 2;
-      g.beginPath(); g.moveTo(R + Math.cos(a) * r0, R + Math.sin(a) * r0); g.lineTo(R + Math.cos(a) * (R - 4), R + Math.sin(a) * (R - 4)); g.stroke();
-    }
-    hand(h.hours + 304.5, R * 0.5, 5, '#2a2520');
-    hand(h.minutes + 54, R * 0.74, 3.5, '#2a2520');
-    hand(h.seconds, R * 0.82, 1.5, '#9a5b1e');
-    g.fillStyle = '#9a5b1e'; g.beginPath(); g.arc(R, R, 3.5, 0, Math.PI * 2); g.fill();
-  };
 }
 
 document.querySelectorAll('[data-figure="movement"]').forEach(initMovementFigure);

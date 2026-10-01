@@ -1,6 +1,6 @@
 # How a Watch Works
 
-An interactive visual essay about the mechanical watch. It starts with a coiled spring and adds one part per section, the gear train, the escape wheel, the pallet fork, the balance and hairspring, then the hands, until a whole movement is ticking on the page. You can spin the 3D model, slow time down to a hundredth of real speed, scrub through a single beat and pull parts out to see what breaks.
+An interactive visual essay about the mechanical watch. It starts with a coiled spring and adds one part per section, the gear train, the escape wheel, the pallet fork, the balance and hairspring, then the hands, until a whole movement is ticking on the page. The main figure starts as a closed watch with a steel case, a cream dial and real hands that keep the movement's time, and it opens to show the movement inside. You can spin the 3D model, slow time down to a hundredth of real speed, scrub through a single beat and pull parts out to see what breaks.
 
 Read it here: https://brotatotes.github.io/how-a-watch-works/
 
